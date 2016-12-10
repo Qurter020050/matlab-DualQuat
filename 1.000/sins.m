@@ -76,7 +76,7 @@ function bodystate_out = sins(bodystate_in, wmm, fmm)
 	r_eb(1) = [];
 	
 	r_nb = Ear2Geo(r_eb);
-	r_nb(3) = glv.H_int;	
+	r_nb(3) = glv.Hint;	
 	
 	v_ie = cross(r_eb,[0 0 glv.wie]);
 	v_eb = v_ie + v_eb;

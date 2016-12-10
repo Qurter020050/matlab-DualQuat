@@ -5,14 +5,14 @@
 % 	subplot(312);plot(tn,Nav_Result(:,2),tn,tra_nav_res(2,:));xlabel('t/s');ylabel('\it\phiy\rm/rad');title('横滚角');grid on;
 %  	subplot(313);plot(tn,Nav_Result(:,3),tn,tra_nav_res(3,:));xlabel('t/s');ylabel('\it\phiz\rm/rad');title('航向角');grid on;
 	figure name '速度解算'
-	subplot(311);plot(tn,Nav_Result(:,4),tg,GPS_Data(:,3));xlabel('t/s');ylabel('');title('东向速度');grid on;
-	subplot(312);plot(tn,Nav_Result(:,5),tg,GPS_Data(:,1));xlabel('t/s');ylabel('');title('北向速度');grid on;
- 	subplot(313);plot(tn,Nav_Result(:,6),tg,GPS_Data(:,2));xlabel('t/s');ylabel('');title('天向速度');grid on;
+	subplot(311);plot(tn,navres(:,4),'b',tg,gpsdata(:,1),'--r');xlabel('t/s');ylabel('');title('东向速度');grid on;
+	subplot(312);plot(tn,navres(:,5),'b',tg,gpsdata(:,2),'--r');xlabel('t/s');ylabel('');title('北向速度');grid on;
+ 	subplot(313);plot(tn,navres(:,6),'b',tg,gpsdata(:,3),'--r');xlabel('t/s');ylabel('');title('天向速度');grid on;
 	
     figure name '位置解算'
-	subplot(311);plot(tn,Nav_Result(:,7),tg,GPS_Data(:,6));xlabel('t/s');ylabel('');title('经度');grid on;
-	subplot(312);plot(tn,Nav_Result(:,8),tg,GPS_Data(:,4));xlabel('t/s');ylabel('');title('纬度');grid on;
- 	subplot(313);plot(tn,Nav_Result(:,9),tg,GPS_Data(:,5));xlabel('t/s');ylabel('');title('高度');grid on;
+	subplot(311);plot(tn,navres(:,7),'b',tg,gpsdata(:,4),'--r');xlabel('t/s');ylabel('');title('经度');grid on;
+	subplot(312);plot(tn,navres(:,8),'b',tg,gpsdata(:,5),'--r');xlabel('t/s');ylabel('');title('纬度');grid on;
+ 	subplot(313);plot(tn,navres(:,9),'b',tg,gpsdata(:,6),'--r');xlabel('t/s');ylabel('');title('高度');grid on;
 	
 % 		for i = 1:1:length(tg)
 % 	error_vel(i,:) = [GPS_Data(i,3)-Nav_Result(i*10,4), GPS_Data(i,1)-Nav_Result(i*10,5), GPS_Data(i,2)-Nav_Result(i*10,6), GPS_Data(i,3)-tra_nav_res(4,i*10)', GPS_Data(i,1)-tra_nav_res(5,i*10)', GPS_Data(i,2)-tra_nav_res(6,i*10)'];

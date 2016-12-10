@@ -1,40 +1,51 @@
-    close all;
-	clearvars -except Data StaticAlignment_Data Navigation_Data GPS_Data;
-    glv;							%读取全局变量	
-    clc;
-    datalen = 4200000;
+%% 数据读取程序
+% .imu数据文件格式：
+%  iPhasePC  X角速率 Y角速率 Z角速率 X加速度 Y加速度 Z加速度 里程计脉冲
+%  
+%  iPhasePC 为惯导5ms计数值；
+%  XYZ角速度为前上右坐标，单位 rad/s；
+%  XYZ加速度              单位 m/s/s;
+%  里程计脉冲为5ms实时采集值（每个脉冲当量大约为0.012）
+%  
+%  .GPS数据文件格式：
+%  iPhasePC GPS状态 GPS模式 GPS有效性 GPS经度 GPS纬度 GPS高度 GPS东速 GPS北速 GPS天速
+%  iPhasePC 与imu文件的PC值对应，周期200ms；
+%  GPS有效性标志，5a表示有效， a5为无效；
+
+
+close all;
+clearvars -except imu gps ;
+glv;							%读取全局变量
+clc;
+navlen = 600000;
+stalen = 5000;
+gpslen = navlen/40;
 %% %%%%%%%%%%%%%%	杞藉叆瀵艰埅鏁版嵁	%%%%%%%%%%%%%%%%
 
-	if (exist('Data','var') ~= 1)
-		load 'E:\Project\Matlab\Data\data2.mat';%鍙互鏀惧叆浣犵殑鍑洪敊澶勭悊锛屼负绌哄垯鐩稿綋浜庤繑鍥?
-    end
-	if (exist('StaticAlignment_Data','var') ~= 1)
-        StaticAlignment_Data = Data(1:200000,:);		%鎻愬彇瀵瑰噯鏁版嵁锛岄噰鏍烽鐜?00HZ锛岄『搴忎负IPHASEPC銆侀檧铻烘暟鎹紙鍖楀ぉ涓滐級銆佸姞琛ㄦ暟鎹紙鍓嶄笂鍙筹級銆丟PS鏁版嵁锛堥?搴︼紙鍓嶄笂鍙筹級銆佷綅缃紙绾珮缁忥級锛?
+if exist('imu','var')==0
+data=load('D:\Project\Matlab\Data\IMU1.mat');
+imu = data.IMU1;
+data=load('D:\Project\Matlab\Data\GPS1.mat');
+gps = data.GPS1;
+clear IMU1 GPS1;
+end
 
-    end
-    
-    if (exist('Navigation_Data','var') ~= 1)
-        Navigation_Data = Data(200001:datalen,:);		%鏁版嵁灏戜簡鐪嬩笉鍑鸿秼鍔?
-     end
-    if (exist('GPS_Data','var') ~= 1)   
-    GPS_Data = zeros(datalen-200001,6);
-    L = length(Navigation_Data);
-    for i=1:1:fix(L/40)    
-    GPS_Data(i,:)=Data(200000+(i-1)*40,8:13);
-    end
-    GPS_Data(i:datalen-200001,:)=[];
-    end
-    
-    wmsta = [ StaticAlignment_Data(:,4), StaticAlignment_Data(:,2), StaticAlignment_Data(:,3)];	%鎻愬彇闄?灪鏁版嵁锛岄『搴忎负涓滃悜銆佸寳鍚戙?澶╁悜
-    fmsta = [ StaticAlignment_Data(:,7), StaticAlignment_Data(:,5), StaticAlignment_Data(:,6)];	%鎻愬彇鍔犺〃鏁版嵁锛岄『搴忎负鍙炽?鍓嶃?涓?
+stadata = imu(1:stalen,:);
+navdata = imu(stalen+1:navlen+stalen,:);
+timestap = imu(stalen+1:navlen+stalen,1);
 
-    wmnav = [ Navigation_Data(:,4), Navigation_Data(:,2), Navigation_Data(:,3)];	%鎻愬彇瀵艰埅鏁版嵁锛屾彁鍙栭檧铻烘暟鎹紝椤哄簭涓哄寳鍚戙?澶╁悜銆佷笢鍚?
-    fmnav = [ Navigation_Data(:,7), Navigation_Data(:,5), Navigation_Data(:,6)];	%鎻愬彇鍔犺〃鏁版嵁锛岄『搴忎负鍙炽?鍓嶃?涓?
-    
-	Tkf = 100 * glv.Ts;				%鍗″皵鏇兼护娉㈠懆鏈燂紝0.5s涓?
-	
-	stalen = length(StaticAlignment_Data);
-	navlen = length(Navigation_Data);
-	gpslen = length(GPS_Data);
-	
-	alinum = 5000;
+gpsdata = zeros(gpslen,8);
+for i=1:1:gpslen
+    gpsdata(i,:)=[gps(i,8:10),gps(i,5:7),gps(i,1),gps(i,4)];
+end
+
+wmsta = [ stadata(:,4), stadata(:,2), stadata(:,3)];
+fmsta = [ stadata(:,7), stadata(:,5), stadata(:,6)];
+
+wmnav = [ navdata(:,4), navdata(:,2), navdata(:,3)];
+fmnav = [ navdata(:,7), navdata(:,5), navdata(:,6)];
+
+
+clear stadata navdata;
+
+Tkf = 100 * glv.Ts;

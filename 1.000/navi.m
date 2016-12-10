@@ -7,37 +7,19 @@
 
     load_data;
 
-%     load 'D:\Data\IMU1.mat';
-% 	load 'D:\Data\GPS1.mat';
-    
-%     StaticAlignment_Data=IMU1(1:3000,2:7);%粗对准数据
-%     Navigation_Data=IMU1(3000:1200000,2:7);%导航数据
-%     
-%     wmsta = [StaticAlignment_Data(:,3) StaticAlignment_Data(:,1) StaticAlignment_Data(:,2)];% 加载陀螺测量值（rad/s）
-%     fmsta = [StaticAlignment_Data(:,6) StaticAlignment_Data(:,4) StaticAlignment_Data(:,5)];% 加载加速度计测量值（m/s/s)
-%     
-%     wm = [Navigation_Data(:,3) Navigation_Data(:,1) Navigation_Data(:,2)];% 加载陀螺测量值（rad/s）
-%     fm = [Navigation_Data(:,6) Navigation_Data(:,4) Navigation_Data(:,5)];% 加载加速度计测量值（m/s/s)
 %% %%%%%%%%%%%%%%	导航程序初始化	%%%%%%%%%%%%%%%%
 
-    pos = [GPS_Data(1,6)*glv.deg, GPS_Data(1,4)*glv.deg, GPS_Data(1,5)];	%输入起始位置的经纬度以及高程信息，顺序为经度，纬度，高度
-	glv.H_int = pos(3);											%获取初始高程
+    pos = [gpsdata(1,4)*glv.deg, gpsdata(1,5)*glv.deg, gpsdata(1,6)];	%输入起始位置的经纬度以及高程信息，顺序为经度，纬度，高度
+	glv.Hint = pos(3);											%获取初始高程
     Vn = zeros(1,3);
 
 %% %%%%%%%%%%%%%%	解析式粗对准	%%%%%%%%%%%%%%%%
 
-% 	disp('粗对准结果：')
-% 	[wnie, wnen, retp, gn] = earth(pos);		
-% 	gb = sum(fmsta(1:alinum,:))/alinum;			%重力取前5000次数据平均值，用以矫正加表零偏
-% 	wbie = sum(wmsta(1:alinum,:))/alinum;				%角速度取前5000次数据平均值，用以矫正陀螺零偏
-% 	Cnb = dv2att(-gb, wbie, gn, wnie);		%解析式粗对准计算出导航系与载体系姿态矩阵
-% 	att0 = M_M2A(Cnb)*glv.rad						%计算初始姿态角att0，单位为rad
-% 	qnb = M_M2Q(Cnb);				%初始姿态角转化为四元数，用以之后的精对准以及之后的姿态矩阵更新
-	qen = Q_E2G(pos);               %位置不发生变化时，该四元数应当不发生变化
+    qen = Q_E2G(pos);               %位置不发生变化时，该四元数应当不发生变化
     qie = [1 0 0 0];                      %初始状态下惯性系坐标与地球系应当一致,也即qie=1
     
     qnb = [0.7903 0.0022 0.0046 0.6127];
-%     qnb = [0.742419491064446, -0.00253448908687747, -0.000320419088466838, 0.669930423987660]
+%   qnb = [0.742419491064446, -0.00253448908687747, -0.000320419088466838, 0.669930423987660]
     att0 = Q_Q2A(qnb);
 	qib = Q_Mul(qie,Q_Mul(qen,qnb));
 	Ra = Geo2Ear(pos);		%将地理系转换为地球系坐标
@@ -99,85 +81,72 @@
 		
 	%% %%%%%%%%%%%%%%	对偶四元数计算	%%%%%%%%%%%%%%%%
 		wie_update = glv.Tn*[0 0 glv.wie];
-      qie_update = A_A2Q(wie_update);		
-	% for k=1:4:stalen-glv.n
+        qie_update = A_A2Q(wie_update);		
+% 	for k=1:4:stalen-glv.n
+% 
+% 		vmm = glv.Ts*(fmsta(k:k+glv.n-1,:));	%构建四子样数据
+% 		wmm = glv.Ts*(wmsta(k:k+glv.n-1,:));
+% 		
+% 		bodystate = sins(bodystate, wmm, vmm);			%导航状态更新
+% 	
+% 		Vn = bodystate.vel(1,:);
+% 		
+% 		Zk = Vn(1:2)';				%取北向、东向速度作为观测量
+% 
+% 		bodystate.vel(2,:) = bodystate.vel(1,:);
+% 		bodystate.vel(1,:) = Vn;
+% 		
+%  		bodystate.dq_wvib = DQ_Calcu(qib,[0 0 0 0]);
+%  		bodystate.dq_wvie = DQ_Calcu(qie,Vie);
+%       bodystate.dq_wreb = DQ_Calcu(qie,Ra);
+%         
+%       bodystate.d_wie_g = [d_wie_g; d_wie_g];
+%       bodystate.d_rie = [d_rie; d_rie];
+%         
+%       d_wie_g = glv.Tn*[0 0 0 glv.wie, g0];
+%       d_rie = glv.Tn*[0 0 0 glv.wie, Vie];
+%         
+% 		%将弧度转化为角度，更新姿态、速度信息，用于后期画图
+% 		Sta_ResTemp = [bodystate.att(1,:)*glv.rad, bodystate.vel(1,:), bodystate.pos(1,1)*glv.rad, bodystate.pos(1,2)*glv.rad, bodystate.pos(3)];
+% 		Sta_Result(kk,:) = [Sta_ResTemp];
+% 		kk=kk+1;
+% 
+% 		% waitbar(k/Total_Time);
+% 		
+% 	end
 
-		% vmm = glv.Ts*(fmsta(k:k+glv.n-1,:));	%构建四子样数据
-		% wmm = glv.Ts*(wmsta(k:k+glv.n-1,:));
-		
-		% bodystate = sins(bodystate, wmm, vmm);			%导航状态更新
-	
-		% Vn = bodystate.vel(1,:);
-		
-		% Zk = Vn(1:2)';				%取北向、东向速度作为观测量
-		% testres(kk,:)=test;	
-		% [Xk, Pk, Kk] = kalman(Fkk_1, Qk, Xk, Pk, Hk, Rk, Zk);%卡尔曼滤波
-		
-		% X(:,kk)=Xk;%保存滤波的误差状态
-		% % ---------------闭环修正-------------------
-		% Cnb=(eye(3)+V_Askew(Xk(3:5)))*Q_Q2M(qnb); % 修正姿态矩阵
-		
-		% bodystate.att(2,:) = bodystate.att(1,:);
-		% bodystate.att(1,:) = M_M2A(Cnb);     % 姿态输出
-      % qie = Q_Mul(qie_update,qie);
-		% qnb = M_M2Q(Cnb); % 反馈回系统 见导航方程 sinsQuat()
-      % qib = Q_Mul(qie,Q_Mul(qen,qnb));
-		
-		% Vn = [Vn(1:2) - Xk(1:2)', 0]; %速度反馈
-		% Xk(1:5)=zeros(5,1);
-		
-		% bodystate.vel(2,:) = bodystate.vel(1,:);
-		% bodystate.vel(1,:) = Vn;
-		
- 		% bodystate.dq_wvib = DQ_Calcu(qib,[0 0 0 0]);
- 		% bodystate.dq_wvie = DQ_Calcu(qie,Vie);
-      % bodystate.dq_wreb = DQ_Calcu(qie,Ra);
-        
-      % bodystate.d_wie_g = [d_wie_g; d_wie_g];
-      % bodystate.d_rie = [d_rie; d_rie];
-        
-      % d_wie_g = glv.Tn*[0 0 0 glv.wie, g0];
-      % d_rie = glv.Tn*[0 0 0 glv.wie, Vie];
-        
-		% %将弧度转化为角度，更新姿态、速度信息，用于后期画图
-		% Sta_ResTemp = [bodystate.att(1,:)*glv.rad, bodystate.vel(1,:), bodystate.pos(1,1)*glv.rad, bodystate.pos(1,2)*glv.rad, bodystate.pos(3)];
-		% Sta_Result(kk,:) = [Sta_ResTemp];
-		% kk=kk+1;
-
-		% % waitbar(k/Total_Time);
-		
-	% end
-
-
-	kk = 1; 	
-	Nav_Result = zeros(0.25 * navlen,9);
-	testres = zeros(0.25 * navlen,3);
+% 	kk = 1; 	
+% 	Nav_Result = zeros(0.25 * navlen,9);
+% 	testres = zeros(0.25 * navlen,3);
 	
 % % 	hwait = waitbar(0,'Please wait...'); %进度条
 % % 	Total_Time = glv.n*length(1:glv.n:navlen);
 
- %% %%%%%%%%%%%%%%	对偶四元数计算	%%%%%%%%%%%%%%%%  
-	for k=1:glv.n:navlen-glv.n
+navres=zeros(navlen/4,10);
 
-		vmm = glv.Ts*(fmnav(k:k+glv.n-1,:));	%构建四子样数据
-		wmm = glv.Ts*(wmnav(k:k+glv.n-1,:));
+ %% %%%%%%%%%%%%%%	对偶四元数计算	%%%%%%%%%%%%%%%%  
+	for k=glv.n:glv.n:navlen
+
+		vmm = glv.Ts*(fmnav(k-glv.n+1:k,:));	%构建四子样数据
+		wmm = glv.Ts*(wmnav(k-glv.n+1:k,:));
 
 		bodystate= sins(bodystate, wmm, vmm);			%导航状态更新
+% 		bodystate.vel(2,:) = bodystate.vel(1,:);
+% 		bodystate.vel(1,:) = Vn;
+% 		
+%   		bodystate.dq_wvib = DQ_Calcu(qib,[0 0 0 0]);
+%  		bodystate.dq_wvie = DQ_Calcu(qie,Vie);
+%         bodystate.dq_wreb = DQ_Calcu(qie,Ra);
 
-		Nav_ResTemp = [bodystate.att(1,:)*glv.rad, bodystate.vel(1,:), bodystate.pos(1,1:2)*glv.rad, bodystate.pos(1,3)];
-		Nav_Result(kk,:) = Nav_ResTemp;
+		Nav_ResTemp = [bodystate.att(1,:)*glv.rad, bodystate.vel(1,:), bodystate.pos(1,1:2)*glv.rad, bodystate.pos(1,3),timestap(k)];
+		navres(k/4,:) = Nav_ResTemp;
         kk=kk+1;
-% 		waitbar(k/Total_Time);
-	end
-% 	close(hwait);
-
-L = length(Navigation_Data);
-Gdata=zeros(fix(L/40),6);
-for i=1:1:fix(L/40)    
-Gdata(i,:)=GPS1(i,5:10);
-end
-[a,b]=size(Gdata);
+    end
+%%
+L = length(navres);
+tn=1:L;
+[a,b]=size(gpsdata);
 tg=1:1:a;
-tg=tg/5;
+tg=tg*10;
 
 print;
