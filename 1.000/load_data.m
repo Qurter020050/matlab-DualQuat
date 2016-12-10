@@ -13,31 +13,30 @@
 %  GPS有效性标志，5a表示有效， a5为无效；
 
 
-close all;
-clearvars -except imu gps ;
+% close all;
+clear all;
+% clearvars -except imu gps ;
 glv;							%读取全局变量
 clc;
-navlen = 600000;
+navlen = 400000;
 stalen = 5000;
 gpslen = navlen/40;
-%% %%%%%%%%%%%%%%	杞藉叆瀵艰埅鏁版嵁	%%%%%%%%%%%%%%%%
+% %% %%%%%%%%%%%%%%	杞藉叆瀵艰埅鏁版嵁	%%%%%%%%%%%%%%%%
+% 
+% if exist('imu','var')==0
+% data=load('D:\Project\Matlab\Data\IMU2.mat');
+% imu = data.IMU2;
+% data=load('D:\Project\Matlab\Data\GPS2.mat');
+% gps = data.GPS2;
+% clear IMU1 GPS1;
+% end
 
-if exist('imu','var')==0
-data=load('D:\Project\Matlab\Data\IMU1.mat');
-imu = data.IMU1;
-data=load('D:\Project\Matlab\Data\GPS1.mat');
-gps = data.GPS1;
-clear IMU1 GPS1;
-end
+load('D:\Project\Matlab\Data\test\Data2.mat');
+load('D:\Project\Matlab\Data\test\trares.mat');
 
-stadata = imu(1:stalen,:);
-navdata = imu(stalen+1:navlen+stalen,:);
-timestap = imu(stalen+1:navlen+stalen,1);
-
-gpsdata = zeros(gpslen,8);
-for i=1:1:gpslen
-    gpsdata(i,:)=[gps(i,8:10),gps(i,5:7),gps(i,1),gps(i,4)];
-end
+stadata = imu(1:stalen,1:7);
+navdata = imu(1:navlen,1:7);
+timestap = imu(1:navlen,1);
 
 wmsta = [ stadata(:,4), stadata(:,2), stadata(:,3)];
 fmsta = [ stadata(:,7), stadata(:,5), stadata(:,6)];

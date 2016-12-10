@@ -10,6 +10,6 @@ function dq_unit_out = DQ_Unit(dq_in, dq_norm)
 
 	dq_unit_real = dq_in(1:4)/dq_norm(1);
 	dq_unit_dual = dq_norm(1)*dq_in(5:8) - dq_norm(5)*dq_in(1:4);
-	dq_unit_dual = dq_unit_dual/(dq_norm(1)^2);
+	dq_unit_dual = dq_unit_dual/(dq_norm(1).^2);
 
 	dq_unit_out = [dq_unit_real, dq_unit_dual];

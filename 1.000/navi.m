@@ -9,19 +9,24 @@
 
 %% %%%%%%%%%%%%%%	导航程序初始化	%%%%%%%%%%%%%%%%
 
-    pos = [gpsdata(1,4)*glv.deg, gpsdata(1,5)*glv.deg, gpsdata(1,6)];	%输入起始位置的经纬度以及高程信息，顺序为经度，纬度，高度
+    pos = [gps(1,1)*glv.deg, gps(1,2)*glv.deg, gps(1,3)];	%输入起始位置的经纬度以及高程信息，顺序为经度，纬度，高度
 	glv.Hint = pos(3);											%获取初始高程
     Vn = zeros(1,3);
 
 %% %%%%%%%%%%%%%%	解析式粗对准	%%%%%%%%%%%%%%%%
-
-    qen = Q_E2G(pos);               %位置不发生变化时，该四元数应当不发生变化
+ 
+    att = [-0.0067    0.0104    1.4041];
+    glv.qen = Q_E2G(pos);               %位置不发生变化时，该四元数应当不发生变化
     qie = [1 0 0 0];                      %初始状态下惯性系坐标与地球系应当一致,也即qie=1
     
-    qnb = [0.7903 0.0022 0.0046 0.6127];
+    qnb = [0.7635, -0.0059, 0.0018, 0.6457];
+    
+%     Cnb =  [0.1660   -0.9861   -0.0048
+%             0.9861    0.1660    0.0114
+%             -0.0104   -0.0067    0.9999];
 %   qnb = [0.742419491064446, -0.00253448908687747, -0.000320419088466838, 0.669930423987660]
     att0 = Q_Q2A(qnb);
-	qib = Q_Mul(qie,Q_Mul(qen,qnb));
+	qib = Q_Mul(qie,Q_Mul(glv.qen,qnb));
 	Ra = Geo2Ear(pos);		%将地理系转换为地球系坐标
 	g0 = Gravitation(pos, Ra);
 	Vie = [0 cross([0 0 glv.wie],Ra)];
@@ -82,6 +87,7 @@
 	%% %%%%%%%%%%%%%%	对偶四元数计算	%%%%%%%%%%%%%%%%
 		wie_update = glv.Tn*[0 0 glv.wie];
         qie_update = A_A2Q(wie_update);		
+        
 % 	for k=1:4:stalen-glv.n
 % 
 % 		vmm = glv.Ts*(fmsta(k:k+glv.n-1,:));	%构建四子样数据
@@ -123,6 +129,7 @@
 % % 	Total_Time = glv.n*length(1:glv.n:navlen);
 
 navres=zeros(navlen/4,10);
+testres = [];
 
  %% %%%%%%%%%%%%%%	对偶四元数计算	%%%%%%%%%%%%%%%%  
 	for k=glv.n:glv.n:navlen
@@ -130,7 +137,7 @@ navres=zeros(navlen/4,10);
 		vmm = glv.Ts*(fmnav(k-glv.n+1:k,:));	%构建四子样数据
 		wmm = glv.Ts*(wmnav(k-glv.n+1:k,:));
 
-		bodystate= sins(bodystate, wmm, vmm);			%导航状态更新
+		bodystate = sins(bodystate, wmm, vmm);			%导航状态更新
 % 		bodystate.vel(2,:) = bodystate.vel(1,:);
 % 		bodystate.vel(1,:) = Vn;
 % 		
@@ -139,14 +146,12 @@ navres=zeros(navlen/4,10);
 %         bodystate.dq_wreb = DQ_Calcu(qie,Ra);
 
 		Nav_ResTemp = [bodystate.att(1,:)*glv.rad, bodystate.vel(1,:), bodystate.pos(1,1:2)*glv.rad, bodystate.pos(1,3),timestap(k)];
-		navres(k/4,:) = Nav_ResTemp;
+		testtemp = [bodystate.test1,bodystate.test2,bodystate.test3,bodystate.test4,bodystate.test5]*glv.rad;
+        navres(k/4,:) = Nav_ResTemp;
+        testres(k/4,:) = testtemp;
         kk=kk+1;
     end
 %%
-L = length(navres);
-tn=1:L;
-[a,b]=size(gpsdata);
-tg=1:1:a;
-tg=tg*10;
 
-print;
+ print;
+
