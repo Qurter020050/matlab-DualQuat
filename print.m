@@ -11,19 +11,19 @@ time = datestr(now);
 % 	subplot(311);plot(tn,navres(:,1),'--b',tt,trares(1,:),'r');xlabel('t/s');ylabel('\it\phix\rm/rad');title('俯仰角');grid on;
 % 	subplot(312);plot(tn,navres(:,2),'--b',tt,trares(2,:),'r');xlabel('t/s');ylabel('\it\phiy\rm/rad');title('横滚角');grid on;
 %  	subplot(313);plot(tn,navres(:,3),'--b',tt,trares(3,:),'r');xlabel('t/s');ylabel('\it\phiz\rm/rad');title('航向角');grid on;
-% 	figure name '速度解算'
-% 	subplot(311);plot(tn,navres(:,4),'b',tg,gps(:,4),'--r');xlabel('t/s');ylabel('');title('东向速度');grid on;
-% 	subplot(312);plot(tn,navres(:,5),'b',tg,gps(:,5),'--r');xlabel('t/s');ylabel('');title('北向速度');grid on;
-%  	subplot(313);plot(tn,navres(:,6),'b',tg,gps(:,6),'--r');xlabel('t/s');ylabel('');title('天向速度');grid on;
+	figure name '速度解算'
+	subplot(311);plot(tt,navres(1:length(tt),4),'b',tt,trares(4,:),'y',tg,gps(:,4),'--r');xlabel('t/s');ylabel('');title('东向速度');grid on;
+	subplot(312);plot(tt,navres(1:length(tt),5),'b',tt,trares(5,:),'y',tg,gps(:,5),'--r');xlabel('t/s');ylabel('');title('北向速度');grid on;
+ 	subplot(313);plot(tt,navres(1:length(tt),6),'b',tt,trares(6,:),'y',tg,gps(:,6),'--r');xlabel('t/s');ylabel('');title('天向速度');grid on;
 % 	
     figure name '位置解算'
-	subplot(311);plot(tn,navres(:,7),'b',tn,trares(8,:),'y',tg,gps(:,1),'--r');xlabel('t/s');ylabel('');title('经度');grid on;
-	subplot(312);plot(tn,navres(:,8),'b',tn,trares(7,:),'y',tg,gps(:,2),'--r');xlabel('t/s');ylabel('');title('纬度');grid on;
- 	subplot(313);plot(tn,navres(:,9),'b',tn,trares(9,:),'y',tg,gps(:,3),'--r');xlabel('t/s');ylabel('');title('高度');grid on;
-% error = zeros(gpslen,6);
-% for i=1:gpslen
-%     error(i,:)=gps(i,1:6)-navres(i*10,4:9);
-% end
+	subplot(311);plot(tt,navres(1:length(tt),7),'b',tt,trares(8,:),'y',tg,gps(:,1),'--r');xlabel('t/s');ylabel('');title('经度');grid on;
+	subplot(312);plot(tt,navres(1:length(tt),8),'b',tt,trares(7,:),'y',tg,gps(:,2),'--r');xlabel('t/s');ylabel('');title('纬度');grid on;
+ 	subplot(313);plot(tt,navres(1:length(tt),9),'b',tt,trares(9,:),'y',tg,gps(:,3),'--r');xlabel('t/s');ylabel('');title('高度');grid on;
+error = zeros(gpslen,6);
+for i=1:gpslen
+    error(i,:)=gps(i,1:6)-navres(i*10,4:9);
+end
 
 
 	

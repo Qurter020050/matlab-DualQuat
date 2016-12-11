@@ -3,7 +3,7 @@
 % 引力系F与地球系E平行，it = ie
 % 位置系为地球系，速度、姿态系参考为导航系
 
-function bodystate_out = sins(bodystate_in, wmm, fmm)
+function bodystate_out = sins(bodystate_in, wmm, vmm)
 
 global glv;									%载入全局变量
 q_en = glv.qen;
@@ -11,13 +11,13 @@ q_en = glv.qen;
 w_bb(1,:) = wmm(1,:)+wmm(2,:);
 w_bb(2,:) = wmm(3,:)+wmm(4,:);
 
-v_bb(1,:) = fmm(1,:)+fmm(2,:);
-v_bb(2,:) = fmm(3,:)+fmm(4,:);
+v_bb(1,:) = vmm(1,:)+vmm(2,:);
+v_bb(2,:) = vmm(3,:)+vmm(4,:);
 
-% dbb1 = [0, wmm(1,:), 0, vmm(1,:)];
-% dbb2 = [0, wmm(2,:), 0, vmm(2,:)];
-% dbb3 = [0, wmm(3,:), 0, vmm(3,:)];
-% dbb4 = [0, wmm(4,:), 0, vmm(4,:)];
+dbb1 = [0, wmm(1,:), 0, vmm(1,:)];
+dbb2 = [0, wmm(2,:), 0, vmm(2,:)];
+dbb3 = [0, wmm(3,:), 0, vmm(3,:)];
+dbb4 = [0, wmm(4,:), 0, vmm(4,:)];
 
 dq_wvib_pre = bodystate_in.dq_wvib;
 dq_wvie_pre = bodystate_in.dq_wvie;
@@ -29,9 +29,9 @@ dq_wvib_update_spiral = zeros(1,8);
 dq_wvib_update_spiral(2:4) = cross(w_bb(1,:), w_bb(2,:));
 dq_wvib_update_spiral(6:8) = cross(w_bb(1,:), v_bb(2,:)) + cross(w_bb(2,:), v_bb(1,:));
 
-% d_wib_vib = [0, sum(w_bb,1), 0, sum(v_bb,1)] + 2*dq_wvib_update_spiral/3;	% 二子样螺旋矢量
+d_wib_vib = [0, sum(w_bb,1), 0, sum(v_bb,1)] + 2*dq_wvib_update_spiral/3;	% 二子样螺旋矢量
 % d_wib_vib = [0, sum(wmm,1), 0, sum(vmm,1)] + (736*(DQ_Mul(dbb1,dbb2)+DQ_Mul(dbb3,dbb4))+334*(DQ_Mul(dbb1,dbb3)+DQ_Mul(dbb2,dbb4))+526*DQ_Mul(dbb1,dbb4)+654*DQ_Mul(dbb2,dbb3))/945; %张论文参数
-d_wib_vib = [0, sum(wmm,1), 0, sum(vmm,1)] +214*(DQ_Mul(dbb1,dbb2)+DQ_Mul(dbb3,dbb4)+DQ_Mul(dbb2,dbb3))/315+(46*(DQ_Mul(dbb1,dbb3)+DQ_Mul(dbb2,dbb4))+54*DQ_Mul(dbb1,dbb4))/105;%秦老师论文参数
+% d_wib_vib = [0, sum(wmm,1), 0, sum(vmm,1)] +214*(DQ_Mul(dbb1,dbb2)+DQ_Mul(dbb3,dbb4)+DQ_Mul(dbb2,dbb3))/315+(46*(DQ_Mul(dbb1,dbb3)+DQ_Mul(dbb2,dbb4))+54*DQ_Mul(dbb1,dbb4))/105;%秦老师论文参数
 
 dq_wvib = DQ_Update(dq_wvib_pre,d_wib_vib);				%
 
@@ -78,12 +78,12 @@ dq_wreb = DQ_Update(dq_wreb_pre, d_wreb);
 [~,r_eb] = DQ_Separate(dq_wreb,-1);
 
 r_nb = Ear2Geo(r_eb);
-% r_nb(3) = glv.Hint;
+r_nb(3) = glv.Hint;
 
 v_e_ie = cross([0,0, glv.wie],r_eb);
-v_eb = v_e_ib+v_e_ie;
+v_eb = v_e_ib - v_e_ie;
 
-g_eb = Gravitation(r_nb, r_eb, q_en);
+g_eb = Gravitation(r_nb, r_eb);
 
 d_wie_vie = glv.Tn*[0 0 0 glv.wie, g_eb];
 
@@ -114,7 +114,7 @@ bodystate_out.dq_wvie = dq_wvie;
 bodystate_out.dq_wreb = dq_wreb;
 bodystate_out.test1 = v_i_ib;
 bodystate_out.test2 = v_eb;
-bodystate_out.test3 = v_e_ie;
+bodystate_out.test3 = v_nb2;
 bodystate_out.test4 = v_e_ib;
-bodystate_out.test5 = v_e_ib;
+bodystate_out.test5 = Q_Q2A(q_ie);
 

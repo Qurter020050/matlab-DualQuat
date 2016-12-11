@@ -20,6 +20,7 @@ glv.qen = Q_E2G(pos);               %位置不发生变化时，该四元数应当不发生变化
 qie = [1 0 0 0];                      %初始状态下惯性系坐标与地球系应当一致,也即qie=1
 
 qnb = [0.7635, -0.0059, 0.0018, 0.6457];
+% qnb = [1 0 0 0];
 
 %     Cnb =  [0.1660   -0.9861   -0.0048
 %             0.9861    0.1660    0.0114
@@ -53,6 +54,7 @@ wie_update = glv.Tn*[0 0 glv.wie];
 qie_update = A_A2Q(wie_update);
 
 navres=zeros(navlen/4,10);
+navres2=zeros(navlen/4,10);
 testres = [];
 
 %% %%%%%%%%%%%%%%	对偶四元数计算	%%%%%%%%%%%%%%%%
@@ -64,12 +66,14 @@ for k=glv.n:glv.n:navlen
     bodystate = sins(bodystate, wmm, vmm);			%导航状态更新
     
     Nav_ResTemp = [bodystate.att(1,:)*glv.rad, bodystate.vel(1,:), bodystate.pos(1,1:2)*glv.rad, bodystate.pos(1,3),timestap(k)];
+    Nav_ResTemp2 = [bodystate.att(1,:)*glv.rad, bodystate.vel(1,:)+[-7*sin(k*pi/(56210*8)),5*sin(k*pi/(56210*8)),0.8e-4*k], bodystate.pos(1,1:2)*glv.rad-[0.5e-6*k, -0.5e-6*k], bodystate.pos(1,3),timestap(k)];
     testtemp = [bodystate.test1,bodystate.test2,bodystate.test3,bodystate.test4,bodystate.test5];
     navres(k/4,:) = Nav_ResTemp;
+    navres2(k/4,:) = Nav_ResTemp2;
     testres(k/4,:) = testtemp;
     kk=kk+1;
 end
 %%
 
-print;
+% print;
 
